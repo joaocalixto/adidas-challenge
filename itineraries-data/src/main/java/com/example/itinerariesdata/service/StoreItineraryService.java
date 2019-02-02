@@ -2,10 +2,12 @@ package com.example.itinerariesdata.service;
 
 import java.util.List;
 
-import com.example.itinerariesdata.data.entity.Itinerary;
+import com.example.itinerariesdata.data.entity.City;
 
 public interface StoreItineraryService {
 	
-	List<Itinerary> listAll();
+	List<City> listAll();
+	
+	void insertTravel(List<City> t);
 
 }
