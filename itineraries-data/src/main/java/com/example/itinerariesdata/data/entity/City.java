@@ -1,18 +1,18 @@
 package com.example.itinerariesdata.data.entity;
 
-import java.util.List;
+import java.util.Set;
 
 import javax.persistence.Entity;
-import javax.persistence.FetchType;
 import javax.persistence.GeneratedValue;
 import javax.persistence.Id;
-import javax.persistence.JoinColumn;
 import javax.persistence.OneToMany;
 
-import lombok.Data;
+import lombok.Getter;
+import lombok.Setter;
 
 @Entity
-@Data
+@Setter
+@Getter
 public class City {
 	
 	@Id
@@ -20,6 +20,8 @@ public class City {
 	public long id;
 	public String name;
 	
-	@OneToMany(targetEntity=Connection.class, fetch=FetchType.EAGER)
-    public List<Connection> connection;
+	@OneToMany
+    public Set<Connection> connection;
+
+	
 }

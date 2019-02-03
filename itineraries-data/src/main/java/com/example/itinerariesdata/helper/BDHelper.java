@@ -1,7 +1,9 @@
 package com.example.itinerariesdata.helper;
 
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 import com.example.itinerariesdata.data.entity.City;
 import com.example.itinerariesdata.data.entity.Connection;
@@ -18,10 +20,11 @@ public static Travel setUp() {
 		City recife = new City();
 		City rio = new City();
 		City brasilia = new City();
-		List<Connection> connection = new ArrayList<Connection>();
+		City salvador = new City();
+		Set<Connection> connection = new HashSet<Connection>();
 		
 		Connection recifeRio = new Connection();
-		recifeRio.setDuration(2);
+		recifeRio.setDuration(3);
 		recifeRio.setStart(recife);
 		recifeRio.setEnd(rio);
 		
@@ -30,24 +33,40 @@ public static Travel setUp() {
 		recifeBSB.setStart(recife);
 		recifeBSB.setEnd(brasilia);
 		
+		Connection recifeSAL = new Connection();
+		recifeSAL.setDuration(1);
+		recifeSAL.setStart(recife);
+		recifeSAL.setEnd(salvador);
+		
 		connection.add(recifeRio);
 		connection.add(recifeBSB);
+		connection.add(recifeSAL);
 		
-		List<Connection> connectionBSB = new ArrayList<Connection>();
+		Set<Connection> connectionBSB = new HashSet<Connection>();
 		Connection bsbRio = new Connection();
 		bsbRio.setEnd(rio);
 		bsbRio.setStart(brasilia);
 		bsbRio.setDuration(1);
-		connectionBSB.add(bsbRio );
-		brasilia.setConnection(connectionBSB );
+		connectionBSB.add(bsbRio);
+		brasilia.setConnection(connectionBSB);
+		
+		Set<Connection> connectionSAL = new HashSet<Connection>();
+		Connection salRio = new Connection();
+		salRio.setEnd(rio);
+		salRio.setStart(salvador);
+		salRio.setDuration(1);
+		connectionSAL.add(salRio);
+		salvador.setConnection(connectionSAL);
 		
 		recife.setConnection(connection);
 		recife.setName("recife");
 		brasilia.setName("brasilia");
 		rio.setName("rio");
+		salvador.setName("salvador");
 		cities.add(recife );
 		cities.add(rio);
 		cities.add(brasilia);
+		cities.add(salvador);
 		travels.setNodes(cities);
 		return travels;
 	}

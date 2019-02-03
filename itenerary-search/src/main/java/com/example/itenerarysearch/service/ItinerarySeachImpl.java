@@ -1,117 +1,102 @@
 package com.example.itenerarysearch.service;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
-import com.example.itenerarysearch.graph.City;
-import com.example.itenerarysearch.graph.Connection;
-import com.example.itenerarysearch.graph.Return;
-import com.example.itenerarysearch.graph.Travel;
-import com.example.itenerarysearch.helper.TravelHelper;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
 
+import com.example.itenerarysearch.domain.SearchResult;
+import com.example.itenerarysearch.domain.webclient.City;
+import com.example.itenerarysearch.domain.webclient.Connection;
+import com.example.itenerarysearch.domain.webclient.FullCity;
+import com.example.itenerarysearch.eureka.ServiceWebClient;
+
+@Service
 public class ItinerarySeachImpl implements IItinerartySeach {
 
-	static Travel travel = setup();
-	static Return ret = new Return();
-	static List<Return> listRet = new ArrayList<Return>();
+	@Autowired
+	ServiceWebClient serviveWebClient;
+
+	private SearchResult ret;
+	private List<SearchResult> listRet;
 	
 	@Override
-	public List<Travel> listTravels(String from, String to) {
+	public List<SearchResult> listTravels(String from, String to, String sortBy) {
+		ret = new SearchResult();
+		listRet = new ArrayList<SearchResult>();
 		
-		City city = TravelHelper.getCity(travel, "wrew");
-		if(city == null) {
-			return null;
-		}
+		buildItinerary(from, to, 0);
 		
-		buildItinerary("recife", "rio", 0);
-		
-		
-		return null;
-	}
-	
-	public static void main(String[] args) {
-		
-		buildItinerary("recife", "rio", 0);
-		
-		System.out.println(listRet.toString());
-		
-	}
+		if(sortBy == null) sortBy = "";
 
-	public static void buildItinerary(String from, String to, double sum){
-		if(sum == 0 ) {
-			sum+=sum;
+		switch (sortBy) {
+		case "duration":
+			Collections.sort(listRet, (s1, s2) -> { return  s1.getDuration() < s2.getDuration() ? -1 : 1;});
+			break;
+		case "connection":
+			Collections.sort(listRet, (s1, s2) -> { return  s1.getCitiesVisited().size() < s2.getCitiesVisited().size() ? -1 : 1;});
+			break;
+		default:
+			Collections.sort(listRet, (s1, s2) -> { return  sortByDurationAndConnections(s1,s2); });
+			break;
+			}
+
+			return listRet;
 		}
-		ret.setDuration(ret.getDuration()+ sum);
-		
-		if(to.equals(from)) {
-			System.out.println(from);
-			ret.setRoutes(ret.getRoutes() + from);
-			listRet.add(ret);
+
+		private int sortByDurationAndConnections(SearchResult s1, SearchResult s2) {
+
+			if(s1.getDuration() < s2.getDuration()) {
+				return -1;
+			}else if(s1.getDuration() == s2.getDuration()) {	
+				if(s1.getCitiesVisited().size() < s2.getCitiesVisited().size()) {
+					return -1;
+				}
+			}else {
+				return 1;
+			}
+			return 0;
+		}
+		public void buildItinerary(String from, String to, double sum){
+
+			ret.setDuration(ret.getDuration()+ sum);
+
+			if(to.equals(from)) {
+				ret.setRoutes(ret.getRoutes() + from);
+				listRet.add(ret);
+				stepBack(from, sum);
+				return;
+			}
+
+			ret.setRoutes(ret.getRoutes() + from +" -> ");
+
+			FullCity fullCity = serviveWebClient.getFullCity(from);
+
+			if(fullCity != null) {
+				List<Connection> connectionList = fullCity.getConn();
+
+				for (Connection connection : connectionList) {
+
+					double duration = connection.getDuration();
+					City end = connection.getEnd();
+					ret.getCitiesVisited().add(end.getName());
+
+					buildItinerary(end.getName(), to, duration);
+				}
+				stepBack(from, sum);
+			}
+
+
+		}
+
+		private void stepBack(String from, double sum) {
 			String r = ret.getRoutes();
-			r = r.replaceAll(from, "");
+			r = r.replaceAll(from+"[ ->}]*", "");
 			double dur = ret.getDuration()- sum;
-			ret = new Return();
+			ret = new SearchResult();
 			ret.setDuration(dur);
 			ret.setRoutes(r);
-			return;
-		}
-		
-		ret.setRoutes(ret.getRoutes() + from +" -> ");
-		
-		City city = TravelHelper.getCity(travel, from);
-		
-		List<Connection> connectionList = city.getConnection();
-		
-		for (Connection connection : connectionList) {
-			
-			double duration = connection.getDuration();
-			City end = connection.getEnd();
-			
-			buildItinerary(end.getName(), to, duration);
 		}
 	}
-	
-
-	private static Travel setup() {
-		
-		Travel travels = new Travel();
-		
-		List<City> cities = new ArrayList<City>();
-		City recife = new City();
-		City rio = new City();
-		City brasilia = new City();
-		List<Connection> connection = new ArrayList<Connection>();
-		
-		Connection recifeRio = new Connection();
-		recifeRio.setDuration(2);
-		recifeRio.setStart(recife);
-		recifeRio.setEnd(rio);
-		
-		Connection recifeBSB = new Connection();
-		recifeBSB.setDuration(3);
-		recifeBSB.setStart(recife);
-		recifeBSB.setEnd(brasilia);
-		
-		connection.add(recifeRio);
-		connection.add(recifeBSB);
-		
-		List<Connection> connectionBSB = new ArrayList<Connection>();
-		Connection bsbRio = new Connection();
-		bsbRio.setEnd(rio);
-		bsbRio.setStart(brasilia);
-		bsbRio.setDuration(1);
-		connectionBSB.add(bsbRio );
-		brasilia.setConnection(connectionBSB );
-		
-		recife.setConnection(connection);
-		recife.setName("recife");
-		brasilia.setName("brasilia");
-		rio.setName("rio");
-		cities.add(recife );
-		cities.add(rio);
-		cities.add(brasilia);
-		travels.setNodes(cities);
-		return travels;
-	}
-
-}
