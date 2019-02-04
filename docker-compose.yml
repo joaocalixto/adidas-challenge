@@ -1,0 +1,44 @@
+version: "3"
+services:
+
+  config-server:
+    container_name: config-server
+    image: config-server:latest
+    ports:
+      - "8888"
+  
+  # service-discovery container
+  service-discovery:
+    container_name: service-discovery
+    image: service-discovery:latest
+    environment:
+      SPRING_CONFIG_URI: "http://config-server:8888"
+    expose:
+      - "8761"
+  
+  # gateway-service:latest
+  gateway-service:
+    container_name: gateway-service
+    image: gateway-service:latest
+    environment:
+      SPRING_CONFIG_URI: "http://config-server:8888"
+    ports:
+      - "8001:8001"
+    
+  # itineraries-data:latest
+  itineraries-data:
+    container_name: itineraries-data
+    image: itineraries-data:latest
+    environment:
+      SPRING_CONFIG_URI: "http://config-server:8888"
+    expose:
+      - "8090"
+    
+  # itenerary-search container.
+  flights-info:
+    container_name: itenerary-search
+    image: itenerary-search:latest
+    environment:
+      SPRING_CONFIG_URI: "http://config-server:8888"
+    expose:
+      - "8091"
